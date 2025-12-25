@@ -214,6 +214,26 @@ async function initDatabase() {
     )
   `)
 
+  db.run(`
+    -- 用户表
+    CREATE TABLE IF NOT EXISTS users (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      username TEXT UNIQUE NOT NULL,
+      password TEXT NOT NULL,
+      name TEXT,
+      role TEXT DEFAULT 'user',
+      status TEXT DEFAULT 'active',
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP
+    )
+  `)
+
+  // 初始化默认管理员
+  const users = db.exec('SELECT COUNT(*) as count FROM users')
+  if (users[0]?.values[0][0] === 0) {
+    db.run('INSERT INTO users (username, password, name, role) VALUES (?, ?, ?, ?)',
+      ['admin', '123456', '管理员', 'admin'])
+  }
+
   // 初始化默认支出分类
   const categories = db.exec('SELECT COUNT(*) as count FROM expense_categories')
   if (categories[0]?.values[0][0] === 0) {

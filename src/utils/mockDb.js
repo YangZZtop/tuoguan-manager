@@ -33,6 +33,9 @@ function getDb() {
     ],
     expenses: [],
     settings: [],
+    users: [
+      { id: 1, username: 'admin', password: '123456', name: '管理员', role: 'admin', status: 'active', created_at: new Date().toISOString() }
+    ],
     _nextId: 100
   }
   localStorage.setItem(DB_KEY, JSON.stringify(defaultDb))

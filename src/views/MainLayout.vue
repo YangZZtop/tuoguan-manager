@@ -12,6 +12,20 @@
         <el-icon class="arrow"><ArrowRight /></el-icon>
       </div>
 
+      <div class="user-info">
+        <el-dropdown @command="handleCommand">
+          <span class="user-dropdown">
+            <el-icon><User /></el-icon>
+            <span>{{ userInfo?.name || '用户' }}</span>
+          </span>
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item command="logout">退出登录</el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
+      </div>
+
       <el-menu
         :default-active="activeMenu"
         router
@@ -74,6 +88,7 @@
             <span>系统设置</span>
           </template>
           <el-menu-item index="/main/branches">分店管理</el-menu-item>
+          <el-menu-item index="/main/users">用户管理</el-menu-item>
           <el-menu-item index="/main/settings">其他设置</el-menu-item>
         </el-sub-menu>
       </el-menu>
@@ -91,7 +106,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useBranchStore } from '@/stores/branch'
 
@@ -102,9 +117,23 @@ const branchStore = useBranchStore()
 const activeMenu = computed(() => route.path)
 const currentTitle = computed(() => route.meta?.title || '首页')
 
+const userInfo = computed(() => {
+  const info = localStorage.getItem('user_info')
+  return info ? JSON.parse(info) : null
+})
+
 function switchBranch() {
   branchStore.clearBranch()
-  router.push('/')
+  router.push('/select-branch')
+}
+
+function handleCommand(command) {
+  if (command === 'logout') {
+    localStorage.removeItem('auth_token')
+    localStorage.removeItem('user_info')
+    branchStore.clearBranch()
+    router.push('/')
+  }
 }
 </script>
 
@@ -146,6 +175,24 @@ function switchBranch() {
 
 .branch-info .arrow {
   margin-left: auto;
+}
+
+.user-info {
+  padding: 12px 20px;
+  border-bottom: 1px solid #1f2d3d;
+}
+
+.user-dropdown {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #bfcbd9;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.user-dropdown:hover {
+  color: white;
 }
 
 .menu {

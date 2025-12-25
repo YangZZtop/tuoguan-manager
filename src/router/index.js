@@ -4,14 +4,21 @@ import { useBranchStore } from '@/stores/branch'
 const routes = [
   {
     path: '/',
+    name: 'Login',
+    component: () => import('@/views/Login.vue')
+  },
+  {
+    path: '/select-branch',
     name: 'SelectBranch',
-    component: () => import('@/views/SelectBranch.vue')
+    component: () => import('@/views/SelectBranch.vue'),
+    meta: { requiresAuth: true }
   },
   {
     path: '/main',
     name: 'Main',
     component: () => import('@/views/MainLayout.vue'),
     redirect: '/main/dashboard',
+    meta: { requiresAuth: true },
     children: [
       { path: 'dashboard', name: 'Dashboard', component: () => import('@/views/Dashboard.vue'), meta: { title: '首页概览' } },
       { path: 'students', name: 'Students', component: () => import('@/views/students/StudentList.vue'), meta: { title: '学生管理' } },
@@ -25,6 +32,7 @@ const routes = [
       { path: 'expenses', name: 'Expenses', component: () => import('@/views/finance/ExpenseList.vue'), meta: { title: '支出管理' } },
       { path: 'statistics', name: 'Statistics', component: () => import('@/views/statistics/StatisticsView.vue'), meta: { title: '数据统计' } },
       { path: 'branches', name: 'Branches', component: () => import('@/views/settings/BranchList.vue'), meta: { title: '分店管理' } },
+      { path: 'users', name: 'Users', component: () => import('@/views/settings/UserList.vue'), meta: { title: '用户管理' } },
       { path: 'settings', name: 'Settings', component: () => import('@/views/settings/SettingsView.vue'), meta: { title: '系统设置' } }
     ]
   }
@@ -36,13 +44,29 @@ const router = createRouter({
 })
 
 router.beforeEach((to, from, next) => {
-  if (to.path !== '/' && to.path !== '/main/branches') {
+  const token = localStorage.getItem('auth_token')
+  
+  // 需要登录的页面
+  if (to.meta.requiresAuth && !token) {
+    next('/')
+    return
+  }
+  
+  // 已登录访问登录页，跳转到选择分店
+  if (to.path === '/' && token) {
+    next('/select-branch')
+    return
+  }
+  
+  // 访问主页面需要选择分店
+  if (to.path.startsWith('/main') && to.path !== '/main/branches') {
     const branchStore = useBranchStore()
     if (!branchStore.currentBranch) {
-      next('/')
+      next('/select-branch')
       return
     }
   }
+  
   next()
 })
 
